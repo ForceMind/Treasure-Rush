@@ -35,6 +35,6 @@ export const POWERUP_TYPES = [
     { type: 'FREEZE', color: '#87CEFA', icon: '❄️' }
 ];
 
-export const COLORS = ['#1E90FF', '#DC143C', '#9400D3', '#32CD32', '#FF8C00', '#FF1493'];
+export const COLORS = ['#1E90FF', '#DC143C', '#9400D3', '#00CED1', '#FF8C00', '#FF1493'];
 export const NAMES = ['你', 'AI-1', 'AI-2', 'AI-3', 'AI-4', 'AI-5'];
 export const ENTRY_FEE = 100;
