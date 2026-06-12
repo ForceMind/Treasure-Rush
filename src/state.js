@@ -3,7 +3,7 @@ export const state = {
     gameState: 'MENU', // MENU, STARTING, PLAYING, GAMEOVER
     countdown: 3,
     totalPlayers: 6,
-    controlMode: 'joystick', // joystick, tap
+    controlMode: 'tap', // joystick, tap
     timeRemaining: 180,
     isFeverTime: false,
     lastTime: 0,

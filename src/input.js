@@ -24,16 +24,16 @@ export function setupInput(canvas) {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
-        const localX = e.clientX - rect.left;
-        const localY = e.clientY - rect.top;
+        const localX = (e.clientX - rect.left) * scaleX;
+        const localY = (e.clientY - rect.top) * scaleY;
 
         if (state.controlMode === 'tap') {
             state.tapTarget = {
-                x: localX * scaleX,
-                y: localY * scaleY
+                x: localX,
+                y: localY
             };
         } else if (state.controlMode === 'joystick') {
-            if (localX < rect.width / 2) {
+            if (localX < 400) {
                 isDraggingJoystick = true;
                 joystickBasePosition = { x: localX, y: localY };
                 
@@ -81,11 +81,13 @@ export function setupInput(canvas) {
         if (!isDraggingJoystick) return;
         
         const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
         const clientX = e.clientX || (e.touches && e.touches[0].clientX);
         const clientY = e.clientY || (e.touches && e.touches[0].clientY);
         
-        const localX = clientX - rect.left;
-        const localY = clientY - rect.top;
+        const localX = (clientX - rect.left) * scaleX;
+        const localY = (clientY - rect.top) * scaleY;
 
         let dx = localX - joystickBasePosition.x;
         let dy = localY - joystickBasePosition.y;

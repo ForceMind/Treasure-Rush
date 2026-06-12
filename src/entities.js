@@ -272,32 +272,54 @@ export class Actor {
             this.determineAITarget();
         }
 
+        let sepX = 0, sepY = 0;
+        state.actors.forEach(other => {
+            if (other !== this) {
+                let d = Math.hypot(other.x - this.x, other.y - this.y);
+                if (d < 80 && d > 0) {
+                    sepX += (this.x - other.x) / d;
+                    sepY += (this.y - other.y) / d;
+                }
+            }
+        });
+
         if (this.aiTarget) {
             let dx = this.aiTarget.x - this.x;
             let dy = this.aiTarget.y - this.y;
             let dist = Math.hypot(dx, dy);
             
             if (dist > 5) {
-                this.x += (dx / dist) * this.getSpeed() * dt;
-                this.y += (dy / dist) * this.getSpeed() * dt;
+                let moveX = (dx / dist) + sepX * 0.5;
+                let moveY = (dy / dist) + sepY * 0.5;
+                let moveDist = Math.hypot(moveX, moveY);
+                if (moveDist > 0) {
+                    moveX /= moveDist;
+                    moveY /= moveDist;
+                }
+                
+                this.x += moveX * this.getSpeed() * dt;
+                this.y += moveY * this.getSpeed() * dt;
             }
 
             if (this.bombCooldown <= 0) {
-                let enemiesNearby = state.actors.filter(a => a !== this && Math.hypot(a.x - this.x, a.y - this.y) < CONFIG.bombRadius - 10);
+                let enemiesNearby = state.actors.filter(a => a !== this && Math.hypot(a.x - this.x, a.y - this.y) < CONFIG.bombRadius);
                 if (enemiesNearby.length > 0) {
-                    let shouldBomb = enemiesNearby.some(a => a.carryingChest && a.carryingChest.multiplier >= 3) || Math.random() < 0.3;
+                    let shouldBomb = false;
+                    if (this.carryingChest && this.carryingChest.multiplier >= 3) {
+                        shouldBomb = true; // Defensive bomb
+                    } else if (!this.carryingChest && enemiesNearby.some(a => a.carryingChest && a.carryingChest.multiplier >= 2)) {
+                        shouldBomb = true; // Offensive bomb
+                    }
                     if (shouldBomb) {
                         this.useBomb();
                     }
                 }
             }
 
-            if (this.dashCooldown <= 0 && dist > 100) {
-                if (this.aiState === 'RETURN' && this.carryingChest && this.carryingChest.multiplier >= 5) {
+            if (this.dashCooldown <= 0 && dist > 80) {
+                if (this.aiState === 'RETURN' && this.carryingChest && this.carryingChest.multiplier >= 3) {
                     this.useDash();
-                } else if (this.aiState === 'CHASE') {
-                    this.useDash();
-                } else if (Math.random() < 0.1) {
+                } else if ((this.aiState === 'CHASE' || this.aiState === 'SEARCH') && dist < 200) {
                     this.useDash();
                 }
             }
@@ -337,7 +359,20 @@ export class Actor {
         state.chests.forEach(c => {
             if (!c.carriedBy) {
                 let dist = Math.hypot(c.x - this.x, c.y - this.y);
-                let score = (c.multiplier * 100) - dist;
+                let score = (c.multiplier * 200) - dist;
+                
+                let isTargetedByCloser = false;
+                state.actors.forEach(other => {
+                    if (other !== this && other.aiTarget && other.aiTarget.x === c.x && other.aiTarget.y === c.y) {
+                        let otherDist = Math.hypot(c.x - other.x, c.y - other.y);
+                        if (otherDist < dist) isTargetedByCloser = true;
+                    }
+                });
+                
+                if (isTargetedByCloser) {
+                    score -= 500;
+                }
+                
                 if (score > bestScore) {
                     bestScore = score;
                     bestChest = c;

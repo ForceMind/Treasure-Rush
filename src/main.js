@@ -323,11 +323,10 @@ window.onload = () => {
             } else {
                 scale = vw / GAME_WIDTH;
             }
-            const realWidth = GAME_WIDTH * scale;
-            const realHeight = GAME_HEIGHT * scale;
             if(container) {
-                container.style.width = `${realWidth}px`;
-                container.style.height = `${realHeight}px`;
+                container.style.width = `${GAME_WIDTH}px`;
+                container.style.height = `${GAME_HEIGHT}px`;
+                container.style.transform = `scale(${scale})`;
             }
         }
         window.addEventListener('resize', resizeCanvas);

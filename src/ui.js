@@ -73,23 +73,24 @@ export function showGameOver() {
     
     state.actors.sort((a, b) => b.beans - a.beans);
     
-    let totalPool = state.totalPlayers * ENTRY_FEE;
-    let platformFee = Math.floor(totalPool * 0.2);
-    let rewardPool = totalPool - platformFee;
-    let totalWeights = (state.totalPlayers * (state.totalPlayers - 1)) / 2;
+    // Reward distribution based on player count
+    const rewardsMap = {
+        6: [200, 150, 130],
+        5: [160, 130, 110],
+        4: [180, 140],
+        3: [130, 110],
+        2: [160]
+    };
     
-    let distributed = 0;
-    for (let i = 1; i < state.totalPlayers; i++) {
-        let weight = state.totalPlayers - 1 - i;
-        let reward = Math.floor(rewardPool * (weight / totalWeights));
-        state.actors[i].rewardCoins = reward;
-        distributed += reward;
-    }
-    state.actors[0].rewardCoins = rewardPool - distributed;
+    let currentRewards = rewardsMap[state.totalPlayers] || [0];
+    
+    state.actors.forEach((a, index) => {
+        a.rewardCoins = index < currentRewards.length ? currentRewards[index] : 0;
+    });
 
     const poolEl = document.getElementById('game-over-pool');
     if (poolEl) {
-        poolEl.innerHTML = `总奖池: <span style="color:#FFD700">${totalPool}</span> | 平台抽成(20%): <span style="color:#FF6347">${platformFee}</span> | 实际发放: <span style="color:#00FF00">${rewardPool}</span>`;
+        poolEl.innerHTML = `比赛结算完毕！前 ${currentRewards.length} 名将获得奖金`;
     }
 
     const list = document.getElementById('game-over-list');
