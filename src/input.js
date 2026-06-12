@@ -16,6 +16,7 @@ export function setupInput(canvas) {
     const joystickKnob = document.getElementById('joystick-knob');
     let isDraggingJoystick = false;
     let joystickBasePosition = { x: 0, y: 0 };
+    let joystickPointerId = null;
 
     // Common pointer down handling for tap and dynamic joystick
     canvas.addEventListener('pointerdown', (e) => {
@@ -33,8 +34,9 @@ export function setupInput(canvas) {
                 y: localY
             };
         } else if (state.controlMode === 'joystick') {
-            if (localX < 400) {
+            if (localX < 400 && joystickPointerId === null) {
                 isDraggingJoystick = true;
+                joystickPointerId = e.pointerId;
                 joystickBasePosition = { x: localX, y: localY };
                 
                 if (joystickArea) {
@@ -61,14 +63,27 @@ export function setupInput(canvas) {
             };
         }
         
-        if (isDraggingJoystick) {
+        if (isDraggingJoystick && e.pointerId === joystickPointerId) {
             updateJoystick(e);
         }
     });
 
-    window.addEventListener('pointerup', () => {
-        if (isDraggingJoystick) {
+    window.addEventListener('pointerup', (e) => {
+        if (isDraggingJoystick && e.pointerId === joystickPointerId) {
             isDraggingJoystick = false;
+            joystickPointerId = null;
+            if (joystickArea) {
+                joystickArea.style.display = 'none';
+                joystickKnob.style.transform = `translate(0px, 0px)`;
+            }
+            state.joystickInput = { x: 0, y: 0 };
+        }
+    });
+
+    window.addEventListener('pointercancel', (e) => {
+        if (isDraggingJoystick && e.pointerId === joystickPointerId) {
+            isDraggingJoystick = false;
+            joystickPointerId = null;
             if (joystickArea) {
                 joystickArea.style.display = 'none';
                 joystickKnob.style.transform = `translate(0px, 0px)`;
@@ -83,8 +98,18 @@ export function setupInput(canvas) {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
-        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+        // Try to get coordinates from pointer event, fallback to touches if it's a touch event
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+        if (e.touches) {
+            // Find the touch that matches our pointerId (rough approximation if needed, though pointer events have clientX)
+            for (let i = 0; i < e.touches.length; i++) {
+                // If the browser mixes touch and pointer, we just use the first touch as fallback
+                clientX = e.touches[i].clientX;
+                clientY = e.touches[i].clientY;
+                break;
+            }
+        }
         
         const localX = (clientX - rect.left) * scaleX;
         const localY = (clientY - rect.top) * scaleY;

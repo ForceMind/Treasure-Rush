@@ -17,9 +17,12 @@
 
     <!-- HUD -->
     <div id="hud" class="hidden">
-        <div class="hud-box">
-            <div>豆子: <span id="hud-gold" style="color:#FFD700;">0</span></div>
-            <div style="font-size: 0.9rem; color: #CCC;">排名: <span id="hud-rank">1</span></div>
+        <div style="display: flex; gap: 10px; align-items: center; pointer-events: auto;">
+            <button id="btn-settings" class="btn" style="padding: 5px 10px; font-size: 1rem;">⚙️</button>
+            <div class="hud-box">
+                <div>豆子: <span id="hud-gold" style="color:#FFD700;">0</span></div>
+                <div style="font-size: 0.9rem; color: #CCC;">排名: <span id="hud-rank">1</span></div>
+            </div>
         </div>
         <div class="hud-box" id="hud-time">3:00</div>
         <div class="hud-box" id="hud-leaderboard">
@@ -29,9 +32,6 @@
 
     <!-- Mobile Controls -->
     <div id="mobile-controls" class="hidden">
-        <div class="control-area" style="top: 50%; right: 20px; left: auto; transform: translateY(-50%);">
-            <button id="btn-toggle-mode" class="btn" style="padding: 5px 15px; font-size: 0.9rem;">操作: 摇杆</button>
-        </div>
         <div id="joystick-area" class="control-area">
             <div id="joystick-knob"></div>
         </div>
@@ -45,6 +45,19 @@
                 <div class="cooldown-overlay hidden" id="cd-bomb"></div>
             </div>
         </div>
+    </div>
+
+    <!-- Settings Menu -->
+    <div id="settings-menu" class="panel hidden" style="background: rgba(0,0,0,0.85); z-index: 200;">
+        <h2 style="color: #FFF; font-size: 2rem; margin-bottom: 30px;">设置</h2>
+        <div class="settings-group">
+            <label>操作模式</label>
+            <div class="btn-group" id="mode-group">
+                <button class="btn" id="btn-mode-tap">点击操作</button>
+                <button class="btn" id="btn-mode-joystick">摇杆操作</button>
+            </div>
+        </div>
+        <button class="btn btn-start" id="btn-close-settings" style="margin-top: 40px; font-size: 1.2rem; padding: 10px 30px;">继续游戏</button>
     </div>
 
     <!-- Main Menu -->

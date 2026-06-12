@@ -123,6 +123,8 @@ export class Actor {
         this.y = this.baseY;
         this.vx = 0;
         this.vy = 0;
+        this.faceX = 0;
+        this.faceY = 1;
         this.beans = 0;
         this.carryingChest = null;
         this.rewardCoins = 0;
@@ -255,6 +257,14 @@ export class Actor {
         this.x += moveX * this.getSpeed() * dt;
         this.y += moveY * this.getSpeed() * dt;
 
+        if (moveX !== 0 || moveY !== 0) {
+            let d = Math.hypot(moveX, moveY);
+            if (d > 0) {
+                this.faceX = moveX / d;
+                this.faceY = moveY / d;
+            }
+        }
+
         if (state.skillTriggers.dash && this.dashCooldown <= 0) {
             this.useDash();
             state.skillTriggers.dash = false;
@@ -295,6 +305,8 @@ export class Actor {
                 if (moveDist > 0) {
                     moveX /= moveDist;
                     moveY /= moveDist;
+                    this.faceX = moveX;
+                    this.faceY = moveY;
                 }
                 
                 this.x += moveX * this.getSpeed() * dt;
@@ -478,18 +490,8 @@ export class Actor {
         ctx.stroke();
 
         ctx.fillStyle = '#FFF';
-        let lookX = 0, lookY = 0;
-        if (this.vx !== 0 || this.vy !== 0) {
-            let dist = Math.hypot(this.vx, this.vy);
-            lookX = this.vx / dist * 10;
-            lookY = this.vy / dist * 10;
-        } else if (this.aiTarget) {
-            let dist = Math.hypot(this.aiTarget.x - this.x, this.aiTarget.y - this.y);
-            if (dist > 0) {
-                lookX = (this.aiTarget.x - this.x) / dist * 10;
-                lookY = (this.aiTarget.y - this.y) / dist * 10;
-            }
-        }
+        let lookX = this.faceX * 10;
+        let lookY = this.faceY * 10;
         ctx.beginPath();
         ctx.arc(this.x + lookX - 5, this.y + lookY - 5, 4, 0, Math.PI*2);
         ctx.arc(this.x + lookX + 5, this.y + lookY - 5, 4, 0, Math.PI*2);

@@ -82,14 +82,11 @@ export function startGame() {
     
     if (joystickArea) {
         if (state.controlMode === 'tap') {
-            joystickArea.style.display = 'none';
-            const btnToggle = document.getElementById('btn-toggle-mode');
-            if (btnToggle) btnToggle.innerText = '操作: 点击';
+            // DON'T show it until touched
+            if(joystickArea) joystickArea.style.display = 'none';
         } else {
             // DON'T show it until touched
             if(joystickArea) joystickArea.style.display = 'none';
-            const btnToggle = document.getElementById('btn-toggle-mode');
-            if (btnToggle) btnToggle.innerText = '操作: 摇杆';
         }
     }
 
@@ -109,7 +106,13 @@ export function resetGameToMenu() {
 }
 
 function gameLoop(timestamp) {
-    if (state.gameState !== 'PLAYING' && state.gameState !== 'STARTING') return;
+    if (state.gameState !== 'PLAYING' && state.gameState !== 'STARTING' && state.gameState !== 'PAUSED') return;
+
+    if (state.gameState === 'PAUSED') {
+        state.lastTime = timestamp;
+        requestAnimationFrame(gameLoop);
+        return;
+    }
 
     let dt = (timestamp - state.lastTime) / 1000;
     if (dt > 0.1) dt = 0.1; 
@@ -292,21 +295,40 @@ window.onload = () => {
             }
         });
 
-        document.getElementById('btn-toggle-mode').addEventListener('click', () => {
-            const joystickArea = document.getElementById('joystick-area');
-            const btnToggleMode = document.getElementById('btn-toggle-mode');
-            if (state.controlMode === 'joystick') {
-                state.controlMode = 'tap';
-                if(btnToggleMode) btnToggleMode.innerText = '操作: 点击';
-                if(joystickArea) joystickArea.style.display = 'none';
-                state.joystickInput = {x: 0, y: 0};
-            } else {
-                state.controlMode = 'joystick';
-                if(btnToggleMode) btnToggleMode.innerText = '操作: 摇杆';
-                // DON'T show it until touched
-                if(joystickArea) joystickArea.style.display = 'none';
-                state.tapTarget = null;
+        // Settings Menu
+        document.getElementById('btn-settings').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (state.gameState === 'PLAYING') {
+                state.gameState = 'PAUSED';
             }
+            document.getElementById('settings-menu').classList.remove('hidden');
+            
+            // update UI state
+            document.getElementById('btn-mode-tap').classList.toggle('active', state.controlMode === 'tap');
+            document.getElementById('btn-mode-joystick').classList.toggle('active', state.controlMode === 'joystick');
+        });
+
+        document.getElementById('btn-close-settings').addEventListener('click', () => {
+            if (state.gameState === 'PAUSED') {
+                state.gameState = 'PLAYING';
+            }
+            document.getElementById('settings-menu').classList.add('hidden');
+        });
+
+        document.getElementById('btn-mode-tap').addEventListener('click', () => {
+            state.controlMode = 'tap';
+            document.getElementById('btn-mode-tap').classList.add('active');
+            document.getElementById('btn-mode-joystick').classList.remove('active');
+            const joystickArea = document.getElementById('joystick-area');
+            if(joystickArea) joystickArea.style.display = 'none';
+            state.joystickInput = {x: 0, y: 0};
+        });
+
+        document.getElementById('btn-mode-joystick').addEventListener('click', () => {
+            state.controlMode = 'joystick';
+            document.getElementById('btn-mode-joystick').classList.add('active');
+            document.getElementById('btn-mode-tap').classList.remove('active');
+            state.tapTarget = null;
         });
 
         document.getElementById('btn-start-game').addEventListener('click', startGame);
