@@ -379,6 +379,9 @@
 
     <!-- Mobile Controls -->
     <div id="mobile-controls" class="hidden">
+        <div class="control-area" style="bottom: 150px; left: 20px;">
+            <button id="btn-toggle-mode" class="btn" style="padding: 5px 15px; font-size: 0.9rem;">操作: 摇杆</button>
+        </div>
         <div id="joystick-area" class="control-area">
             <div id="joystick-knob"></div>
         </div>
@@ -409,14 +412,6 @@
                 <button class="btn" data-count="4">4</button>
                 <button class="btn" data-count="5">5</button>
                 <button class="btn active" data-count="6">6</button>
-            </div>
-        </div>
-
-        <div class="settings-group">
-            <label>操作模式</label>
-            <div class="btn-group" id="control-mode-group">
-                <button class="btn active" data-mode="joystick">摇杆 / 键盘</button>
-                <button class="btn" data-mode="tap">点击移动</button>
             </div>
         </div>
 
@@ -650,11 +645,17 @@ document.getElementById('player-count-group').addEventListener('click', (e) => {
     }
 });
 
-document.getElementById('control-mode-group').addEventListener('click', (e) => {
-    if(e.target.tagName === 'BUTTON') {
-        document.querySelectorAll('#control-mode-group .btn').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        controlMode = e.target.dataset.mode;
+document.getElementById('btn-toggle-mode').addEventListener('click', () => {
+    if (controlMode === 'joystick') {
+        controlMode = 'tap';
+        document.getElementById('btn-toggle-mode').innerText = '操作: 点击';
+        joystickArea.style.display = 'none';
+        joystickInput = {x: 0, y: 0};
+    } else {
+        controlMode = 'joystick';
+        document.getElementById('btn-toggle-mode').innerText = '操作: 摇杆';
+        joystickArea.style.display = 'flex';
+        tapTarget = null;
     }
 });
 
@@ -1289,23 +1290,13 @@ function startGame() {
     uiGameOver.classList.add('hidden');
     uiHud.classList.remove('hidden');
     
-    if (controlMode !== 'tap') {
-        // If joy/keys, show mobile UI only if on mobile (rough check)
-        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-            uiMobileControls.classList.remove('hidden');
-            // Hide joystick area if tap mode was selected but we fallback? 
-            // Wait, logic says if NOT tap. So show full mobile controls.
-        } else {
-             // On desktop, we can hide joystick area but maybe show skill buttons or hide them.
-             // Let's just hide mobile controls entirely on desktop for cleaner look, they use keys.
-             // Actually, showing them doesn't hurt. We will show skills but hide joystick.
-             uiMobileControls.classList.remove('hidden');
-             joystickArea.style.display = 'none';
-        }
-    } else {
-        // Tap mode: show skills, hide joystick
-        uiMobileControls.classList.remove('hidden');
+    uiMobileControls.classList.remove('hidden');
+    if (controlMode === 'tap') {
         joystickArea.style.display = 'none';
+        document.getElementById('btn-toggle-mode').innerText = '操作: 点击';
+    } else {
+        joystickArea.style.display = 'flex';
+        document.getElementById('btn-toggle-mode').innerText = '操作: 摇杆';
     }
 
     lastTime = performance.now();
